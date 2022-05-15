@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# VSCode
+.vscode/
+
+# CMake build dir
+build/
+
+# All ".DS_Store" file
+*.DS_Store
