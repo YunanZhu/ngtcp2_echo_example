@@ -9387,7 +9387,7 @@ static int conn_sync_stream_data_limit(ngtcp2_conn *conn) {
  * NGTCP2_ERR_CALLBACK_FAILURE
  *     User callback failed.
  */
-static int conn_handshake_completed(ngtcp2_conn *conn) {
+/* static */ int conn_handshake_completed(ngtcp2_conn *conn) { // expose this function to outside
   int rv;
 
   conn->flags |= NGTCP2_CONN_FLAG_HANDSHAKE_COMPLETED_HANDLED;

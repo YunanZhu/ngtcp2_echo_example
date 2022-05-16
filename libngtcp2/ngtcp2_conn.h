@@ -1087,4 +1087,27 @@ ngtcp2_ssize ngtcp2_conn_write_application_close_pkt(
 
 void ngtcp2_conn_stop_pmtud(ngtcp2_conn *conn);
 
+/**
+ * 将该函数暴露出来，以便于外部调用。
+ * 注意本函数与 ngtcp2_conn_handshake_completed 函数的区别，
+ * 本函数是 ngtcp2 库内部的函数，是当 QUIC cryptographic handshake 完成后会被调用的函数，
+ * 而 ngtcp2_conn_handshake_completed 是 ngtcp2 库对外的接口，用来告知 ngtcp2 库 TLS handshake 已完成。
+ * 
+ * 本函数的作用是调用 conn->callbacks.{
+ *    handshake_completed,
+ *    extend_max_local_streams_bidi,
+ *    extend_max_local_streams_uni
+ * } 这三个回调函数。
+ * 
+ * 前往 function definition 查看该函数的文档。
+ */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+int conn_handshake_completed(ngtcp2_conn *conn);
+#ifdef __cplusplus
+} // extern "C" 
+#endif
+
 #endif /* NGTCP2_CONN_H */

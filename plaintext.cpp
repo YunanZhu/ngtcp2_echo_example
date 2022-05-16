@@ -156,7 +156,7 @@ namespace ngtcp2_plaintext
         pt_crypto_ctx_tls(&crypto_ctx);
         ngtcp2_conn_set_crypto_ctx(conn, &crypto_ctx);
 
-        conn->negotiated_version = conn->original_version;
+        conn->negotiated_version = conn->client_chosen_version;
 
         /* Install packet protection keying materials for encrypting/decrypting Handshake packets. */
         ngtcp2_conn_install_rx_handshake_key(conn, &aead_ctx, null_iv, sizeof(null_iv), &hp_ctx);
@@ -448,7 +448,7 @@ namespace ngtcp2_plaintext
         conn->local.uni.max_streams = remote_params.initial_max_streams_uni;   // 根据远端的设置，设定本端可以开启的单向 stream 的最大数量
         conn->tx.max_offset = remote_params.initial_max_data;
 
-        conn->negotiated_version = conn->original_version;
+        conn->negotiated_version = conn->client_chosen_version;
 
         /* stateless reset token */
         if (!is_server)

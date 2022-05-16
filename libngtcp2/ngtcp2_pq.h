@@ -83,7 +83,13 @@ void ngtcp2_pq_free(ngtcp2_pq *pq);
  * NGTCP2_ERR_NOMEM
  *     Out of memory.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 int ngtcp2_pq_push(ngtcp2_pq *pq, ngtcp2_pq_entry *item);
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 /*
  * Returns item at the top of the queue |pq|.  It is undefined if the
