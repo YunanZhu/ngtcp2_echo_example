@@ -1102,12 +1102,11 @@ void ngtcp2_conn_stop_pmtud(ngtcp2_conn *conn);
  * 前往 function definition 查看该函数的文档。
  */
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
-int conn_handshake_completed(ngtcp2_conn *conn);
+NGTCP2_EXTERN int conn_handshake_completed(ngtcp2_conn *conn);
 #ifdef __cplusplus
-} // extern "C" 
+} /* extern "C" */
 #endif
 
 #endif /* NGTCP2_CONN_H */

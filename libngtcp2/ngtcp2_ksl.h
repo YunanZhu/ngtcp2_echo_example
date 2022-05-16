@@ -240,7 +240,7 @@ void ngtcp2_ksl_update_key(ngtcp2_ksl *ksl, const ngtcp2_ksl_key *old_key,
 #ifdef __cplusplus
 extern "C" {
 #endif
-ngtcp2_ksl_it ngtcp2_ksl_begin(const ngtcp2_ksl *ksl);
+NGTCP2_EXTERN ngtcp2_ksl_it ngtcp2_ksl_begin(const ngtcp2_ksl *ksl);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
@@ -259,7 +259,7 @@ ngtcp2_ksl_it ngtcp2_ksl_end(const ngtcp2_ksl *ksl);
 #ifdef __cplusplus
 extern "C" {
 #endif
-size_t ngtcp2_ksl_len(ngtcp2_ksl *ksl);
+NGTCP2_EXTERN size_t ngtcp2_ksl_len(ngtcp2_ksl *ksl);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

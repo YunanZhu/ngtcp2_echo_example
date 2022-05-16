@@ -1,5 +1,9 @@
-# 本 CMakeLists 参考了 lib ngtcp2 里对应位置的 CMakeLists 的写法
+# 本 CMakeLists 参考了 lib ngtcp2 里对应位置的 CMakeLists 的写法。
 
+# 使用 #define BUILDING_NGTCP2 来使得 #define NGTCP2_EXTERN 起作用。
+# 即 #define NGTCP2_EXTERN __attribute__((visibility("default")))，
+# 否则 #define NGTCP2_EXTERN 为空。
+# 参见 "libngtcp2/includes/ngtcp2/ngtcp2.h"。
 add_definitions(-DBUILDING_NGTCP2)
 
 set(ngtcp2_SOURCES
@@ -49,12 +53,18 @@ set(ngtcp2_INCLUDE_DIRS
 # Shared library
 add_library(ngtcp2 SHARED ${ngtcp2_SOURCES})
 set_target_properties(ngtcp2 PROPERTIES
+  C_VISIBILITY_PRESET hidden
   POSITION_INDEPENDENT_CODE ON
 )
 target_include_directories(ngtcp2 PUBLIC ${ngtcp2_INCLUDE_DIRS})
 
-
 # Static library
 add_library(ngtcp2_static STATIC ${ngtcp2_SOURCES})
-target_compile_definitions(ngtcp2_static PUBLIC "-DNGTCP2_STATICLIB")
+set_target_properties(ngtcp2_static PROPERTIES
+  C_VISIBILITY_PRESET hidden
+)
+# 一旦使用 #define NGTCP2_STATICLIB 可使得 #define NGTCP2_EXTERN 完全失效，无视 #define BUILDING_NGTCP2。
+# 参见 "libngtcp2/includes/ngtcp2/ngtcp2.h"。
+# 因此在这里关闭 #define NGTCP2_STATICLIB，使得 #define BUILDING_NGTCP2 在静态库下也可以正常工作。
+# target_compile_definitions(ngtcp2_static PUBLIC "-DNGTCP2_STATICLIB")
 target_include_directories(ngtcp2_static PUBLIC ${ngtcp2_INCLUDE_DIRS})

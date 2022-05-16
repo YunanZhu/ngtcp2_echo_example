@@ -86,7 +86,7 @@ void ngtcp2_pq_free(ngtcp2_pq *pq);
 #ifdef __cplusplus
 extern "C" {
 #endif
-int ngtcp2_pq_push(ngtcp2_pq *pq, ngtcp2_pq_entry *item);
+NGTCP2_EXTERN int ngtcp2_pq_push(ngtcp2_pq *pq, ngtcp2_pq_entry *item);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

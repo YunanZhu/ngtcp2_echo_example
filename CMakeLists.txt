@@ -34,11 +34,13 @@ set(server_SOURCE
 add_executable(client ${client_SOURCE})
 target_include_directories(client PRIVATE ${PROJECT_SOURCE_DIR}/libngtcp2/)
 target_include_directories(client PRIVATE ${PROJECT_SOURCE_DIR}/libngtcp2/includes)
-target_link_libraries(client ngtcp2_static)
-target_link_libraries(client libev.a)
+# target_link_libraries(client ngtcp2_static) # use static library
+target_link_libraries(client ngtcp2) # use shared library
+target_link_libraries(client ev) # libev
 
 add_executable(server ${server_SOURCE})
 target_include_directories(server PRIVATE ${PROJECT_SOURCE_DIR}/libngtcp2/)
 target_include_directories(server PRIVATE ${PROJECT_SOURCE_DIR}/libngtcp2/includes)
-target_link_libraries(server ngtcp2_static)
-target_link_libraries(server libev.a)
+# target_link_libraries(server ngtcp2_static) # use static library
+target_link_libraries(server ngtcp2) # use shared library
+target_link_libraries(server ev) # libev
