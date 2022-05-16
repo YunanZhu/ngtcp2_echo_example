@@ -20,7 +20,7 @@ namespace
 {
     constexpr size_t BUF_SIZE = 1280;
     constexpr size_t N_STREAMS_MAX_ONE_CONN = 3; // 一个 QUIC Connection 中可以创建的 Stream 数量的上限
-    constexpr size_t N_COALESCE_MAX = 2;
+    constexpr size_t N_COALESCE_MAX = 2;         // 将 N_COALESCE_MAX 次 stdin 读取的数据合并发送
 } /* namespace */
 
 namespace
@@ -159,9 +159,10 @@ namespace
         size_t n_push = cur_stream->push_data(buf, n_read);
         printf("Debug: Push %zu bytes to stream #%zd.\n", n_push, cur_stream_id); // 剩余没有能够拷贝进 stream 的数据就只能被丢弃了
 
+        /* 如果 cur_stream 对应的 coalesce_count 达到了 coalesce_limit 上限 */
         if (++(cli->coalesce_count) >= cli->coalesce_limit)
         {
-            ret = connection->write();
+            ret = connection->write(); // 将此时 connection 中暂存的数据都发送出去
             if (ret < 0)
             {
                 fprintf(stderr, "Error [%s] [connection->write]: ret = %d.\n", __func__, ret);
@@ -170,7 +171,7 @@ namespace
                 return;
             }
 
-            cli->coalesce_count = 0;       // 将 coalesce_count 重置
+            cli->coalesce_count = 0;       // 将 coalesce_count 重置为零
             connection->step_cur_stream(); // 切换到下一条 stream
 
             /* 设置下一次的 timer expire 事件（注意这里，不要忘记了） */

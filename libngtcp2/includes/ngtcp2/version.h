@@ -36,7 +36,7 @@
  *
  * Version number of the ngtcp2 library release.
  */
-#define NGTCP2_VERSION "0.5.0-DEV"
+#define NGTCP2_VERSION "0.5.0"
 
 /**
  * @macro
