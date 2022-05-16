@@ -236,16 +236,13 @@ void ngtcp2_ksl_update_key(ngtcp2_ksl *ksl, const ngtcp2_ksl_key *old_key,
  * ngtcp2_ksl_begin returns the iterator which points to the first
  * node.  If there is no node in |ksl|, it returns the iterator which
  * satisfies ngtcp2_ksl_it_end(it) != 0.
- * 
- * 对 ngtcp2 库进行修改。增加了 extern "C"。
  */
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 ngtcp2_ksl_it ngtcp2_ksl_begin(const ngtcp2_ksl *ksl);
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 /*
@@ -258,16 +255,13 @@ ngtcp2_ksl_it ngtcp2_ksl_end(const ngtcp2_ksl *ksl);
 
 /*
  * ngtcp2_ksl_len returns the number of elements stored in |ksl|.
- * 
- * 对 ngtcp2 库进行修改。增加了 extern "C"。
  */
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 size_t ngtcp2_ksl_len(ngtcp2_ksl *ksl);
 #ifdef __cplusplus
-} // extern "C" 
+} /* extern "C" */
 #endif
 
 /*

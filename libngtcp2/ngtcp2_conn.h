@@ -426,6 +426,9 @@ struct ngtcp2_conn {
   struct {
     /* strmq contains ngtcp2_strm which has frames to send. */
     ngtcp2_pq strmq;
+    /* strmq_nretrans is the number of entries in strmq which has
+       stream data to resent. */
+    size_t strmq_nretrans;
     /* ack is ACK frame.  The underlying buffer is reused. */
     ngtcp2_frame *ack;
     /* max_ack_blks is the number of additional ngtcp2_ack_blk which
@@ -610,7 +613,9 @@ struct ngtcp2_conn {
     ngtcp2_frame_chain **pfrc;
     int pkt_empty;
     int hd_logged;
-    uint8_t rtb_entry_flags;
+    /* flags is bitwise OR of zero or more of
+       NGTCP2_RTB_ENTRY_FLAG_*. */
+    uint16_t rtb_entry_flags;
     ngtcp2_ssize hs_spktlen;
     int require_padding;
   } pkt;
@@ -641,9 +646,11 @@ struct ngtcp2_conn {
        for. */
     uint32_t version;
     /* preferred_versions is the array of versions that are preferred
-       by server.  It negotiates one of those versions in this array
-       if a client initially selects a less preferred version.  This
-       field is only used by server. */
+       by the local endpoint.  Server negotiates one of those versions
+       in this array if a client initially selects a less preferred
+       version.  Client uses this field and original_version field to
+       prevent version downgrade attack if it reacted upon Version
+       Negotiation packet. */
     uint32_t *preferred_versions;
     /* preferred_versionslen is the number of versions stored in the
        array pointed by preferred_versions.  This field is only used
@@ -672,7 +679,7 @@ struct ngtcp2_conn {
   /* idle_ts is the time instant when idle timer started. */
   ngtcp2_tstamp idle_ts;
   void *user_data;
-  uint32_t original_version;
+  uint32_t client_chosen_version;
   uint32_t negotiated_version;
   /* flags is bitwise OR of zero or more of NGTCP2_CONN_FLAG_*. */
   uint32_t flags;
@@ -796,9 +803,15 @@ int ngtcp2_conn_close_stream_if_shut_rdwr(ngtcp2_conn *conn, ngtcp2_strm *strm);
  * ack_delay included in ACK frame.  |ack_delay| is actually tainted
  * (sent by peer), so don't assume that |ack_delay| is always smaller
  * than, or equals to |rtt|.
+ *
+ * This function returns 0 if it succeeds, or one of the following
+ * negative error codes:
+ *
+ * NGTCP2_ERR_INVALID_ARGUMENT
+ *     RTT sample is ignored.
  */
-void ngtcp2_conn_update_rtt(ngtcp2_conn *conn, ngtcp2_duration rtt,
-                            ngtcp2_duration ack_delay, ngtcp2_tstamp ts);
+int ngtcp2_conn_update_rtt(ngtcp2_conn *conn, ngtcp2_duration rtt,
+                           ngtcp2_duration ack_delay, ngtcp2_tstamp ts);
 
 void ngtcp2_conn_set_loss_detection_timer(ngtcp2_conn *conn, ngtcp2_tstamp ts);
 
@@ -869,7 +882,7 @@ ngtcp2_ssize ngtcp2_conn_write_vmsg(ngtcp2_conn *conn, ngtcp2_path *path,
 ngtcp2_ssize ngtcp2_conn_write_single_frame_pkt(
     ngtcp2_conn *conn, ngtcp2_pkt_info *pi, uint8_t *dest, size_t destlen,
     uint8_t type, uint8_t flags, const ngtcp2_cid *dcid, ngtcp2_frame *fr,
-    uint8_t rtb_flags, const ngtcp2_path *path, ngtcp2_tstamp ts);
+    uint16_t rtb_entry_flags, const ngtcp2_path *path, ngtcp2_tstamp ts);
 
 /*
  * ngtcp2_conn_commit_local_transport_params commits the local
@@ -944,6 +957,15 @@ void ngtcp2_conn_cancel_expired_ack_delay_timer(ngtcp2_conn *conn,
  * UINT64_MAX if loss detection timer is not armed.
  */
 ngtcp2_tstamp ngtcp2_conn_loss_detection_expiry(ngtcp2_conn *conn);
+
+/**
+ * @function
+ *
+ * `ngtcp2_conn_get_idle_expiry` returns the time when a connection
+ * should be closed if it continues to be idle.  If idle timeout is
+ * disabled, this function returns ``UINT64_MAX``.
+ */
+ngtcp2_tstamp ngtcp2_conn_get_idle_expiry(ngtcp2_conn *conn);
 
 ngtcp2_duration ngtcp2_conn_compute_pto(ngtcp2_conn *conn, ngtcp2_pktns *pktns);
 
@@ -1066,14 +1088,18 @@ ngtcp2_ssize ngtcp2_conn_write_application_close_pkt(
 void ngtcp2_conn_stop_pmtud(ngtcp2_conn *conn);
 
 /**
- * 对 ngtcp2 库进行修改。
- * 
- * 将该函数暴露出来，方便外部调用。
+ * 将该函数暴露出来，以便于外部调用。
  * 注意本函数与 ngtcp2_conn_handshake_completed 函数的区别，
  * 本函数是 ngtcp2 库内部的函数，是当 QUIC cryptographic handshake 完成后会被调用的函数，
  * 而 ngtcp2_conn_handshake_completed 是 ngtcp2 库对外的接口，用来告知 ngtcp2 库 TLS handshake 已完成。
  * 
- * 请 Go to Definition 来查看该函数的文档。
+ * 本函数的作用是调用 conn->callbacks.{
+ *    handshake_completed,
+ *    extend_max_local_streams_bidi,
+ *    extend_max_local_streams_uni
+ * } 这三个回调函数。
+ * 
+ * 前往 function definition 查看该函数的文档。
  */
 #ifdef __cplusplus
 extern "C"
