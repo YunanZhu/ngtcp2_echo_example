@@ -30,6 +30,7 @@
 #include "ngtcp2_str.h"
 #include "ngtcp2_conv.h"
 #include "ngtcp2_conn.h"
+#include "ngtcp2_net.h"
 
 int ngtcp2_crypto_km_new(ngtcp2_crypto_km **pckm, const uint8_t *secret,
                          size_t secretlen,
@@ -261,7 +262,8 @@ ngtcp2_ssize ngtcp2_encode_transport_params_versioned(
   }
   if (params->version_info_present) {
     version_infolen = sizeof(uint32_t) + params->version_info.other_versionslen;
-    len += ngtcp2_put_varint_len(NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION) +
+    len += ngtcp2_put_varint_len(
+               NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION_DRAFT) +
            ngtcp2_put_varint_len(version_infolen) + version_infolen;
   }
 
@@ -401,7 +403,7 @@ ngtcp2_ssize ngtcp2_encode_transport_params_versioned(
   }
 
   if (params->version_info_present) {
-    p = ngtcp2_put_varint(p, NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION);
+    p = ngtcp2_put_varint(p, NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION_DRAFT);
     p = ngtcp2_put_varint(p, version_infolen);
     p = ngtcp2_put_uint32be(p, params->version_info.chosen_version);
     if (params->version_info.other_versionslen) {
@@ -520,6 +522,7 @@ int ngtcp2_decode_transport_params_versioned(
   ngtcp2_ssize nread;
   int initial_scid_present = 0;
   int original_dcid_present = 0;
+  size_t i;
   (void)transport_params_version;
 
   if (datalen == 0) {
@@ -785,7 +788,7 @@ int ngtcp2_decode_transport_params_versioned(
       p += nread;
       params->grease_quic_bit = 1;
       break;
-    case NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION:
+    case NGTCP2_TRANSPORT_PARAM_VERSION_INFORMATION_DRAFT:
       nread = decode_varint(&valuelen, p, end);
       if (nread < 0) {
         return NGTCP2_ERR_MALFORMED_TRANSPORT_PARAM;
@@ -798,11 +801,20 @@ int ngtcp2_decode_transport_params_versioned(
         return NGTCP2_ERR_MALFORMED_TRANSPORT_PARAM;
       }
       params->version_info.chosen_version = ngtcp2_get_uint32(p);
+      if (params->version_info.chosen_version == 0) {
+        return NGTCP2_ERR_MALFORMED_TRANSPORT_PARAM;
+      }
       p += sizeof(uint32_t);
       if (valuelen > sizeof(uint32_t)) {
         params->version_info.other_versions = (uint8_t *)p;
         params->version_info.other_versionslen = valuelen - sizeof(uint32_t);
-        p += valuelen - sizeof(uint32_t);
+
+        for (i = sizeof(uint32_t); i < valuelen;
+             i += sizeof(uint32_t), p += sizeof(uint32_t)) {
+          if (ngtcp2_get_uint32(p) == 0) {
+            return NGTCP2_ERR_MALFORMED_TRANSPORT_PARAM;
+          }
+        }
       }
       params->version_info_present = 1;
       break;
