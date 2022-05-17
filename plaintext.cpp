@@ -1,11 +1,8 @@
-#ifndef __PLAINTEXT_CPP__
-#define __PLAINTEXT_CPP__
-
 #include <cstdio>
 #include <cstring>
 #include <assert.h>
 
-#include "ngtcp2/ngtcp2.h"
+#include <ngtcp2/ngtcp2.h>
 #include "ngtcp2_conn.h"
 
 #include "utils.h"
@@ -441,5 +438,3 @@ namespace ngtcp2_plaintext
     }
 
 } /* ngtcp2_plaintext */
-
-#endif // __PLAINTEXT_CPP__
