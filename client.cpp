@@ -315,13 +315,6 @@ int main()
     ev_timer_init(&(cli.ngtcp2_timer_watcher), timer_cb, /*after = */ 0, /*repeat = */ 0); // 驱动 ngtcp2 工作的时钟
     cli.ngtcp2_timer_watcher.data = &cli;
 
-    // connection->write();
-    // ngtcp2_tstamp expiry = connection->get_expiry();
-    // ngtcp2_tstamp now = timestamp();
-    // ev_tstamp t = ((expiry <= now) ? 1e-9 : (static_cast<ev_tstamp>(expiry - now) / NGTCP2_SECONDS));
-    // cli.ngtcp2_timer_watcher.repeat = t;
-    // ev_timer_again(EV_DEFAULT, &(cli.ngtcp2_timer_watcher));
-
     printf("Start Event loop.\n");
     ev_run(loop, 0); // 启动 event loop
 
