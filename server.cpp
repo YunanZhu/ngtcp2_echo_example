@@ -1,5 +1,6 @@
 #include <memory>
 #include <assert.h>
+#include <iostream>
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -294,15 +295,22 @@ int main()
 {
     EchoServer srv;
 
-    /* Create a server socket */
-    const char *const local_host = "127.0.0.1";
-    const char *const local_port = "12047";
+    /* Get local host & port from stdin */
+    char local_host[50] = {0}, local_port[50] = {0};
+    printf("Input local host & port:\n");
+    std::cin.getline(local_host, sizeof(local_host));
+    std::cin.getline(local_port, sizeof(local_port));
+    printf("Local host: [%s].\n", local_host);
+    printf("Local port: [%s].\n", local_port);
 
+    /* Create a server socket */
     struct sockaddr_storage local_addr;
     socklen_t local_addrlen = sizeof(local_addr);
 
-    int sock_fd = resolve_and_bind(local_host, local_port,
-                                   (sockaddr *)&local_addr, &local_addrlen);
+    int sock_fd = resolve_and_bind(
+        (local_host[0] ? local_host : nullptr),
+        (local_port[0] ? local_port : nullptr),
+        (sockaddr *)&local_addr, &local_addrlen);
     if (sock_fd < 0)
     {
         fprintf(stderr, "Error [%s] [resolve_and_connect]: ret = %d.\n", __func__, sock_fd);

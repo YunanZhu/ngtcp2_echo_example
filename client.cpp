@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 #include <assert.h>
+#include <iostream>
 
 #include <unistd.h>
 #include <sys/socket.h>
@@ -243,16 +244,23 @@ int main()
 {
     EchoClient cli(N_COALESCE_MAX);
 
-    /* Create a client socket */
-    const char *const remote_host = "127.0.0.1";
-    const char *const remote_port = "12047";
+    /* Get remote host & port from stdin */
+    char remote_host[50] = {0}, remote_port[50] = {0};
+    printf("Input local host & port:\n");
+    std::cin.getline(remote_host, sizeof(remote_host));
+    std::cin.getline(remote_port, sizeof(remote_port));
+    printf("Remote host: [%s].\n", remote_host);
+    printf("Remote port: [%s].\n", remote_port);
 
+    /* Create a client socket */
     struct sockaddr_storage local_addr, remote_addr;
     socklen_t local_addrlen = sizeof(local_addr), remote_addrlen = sizeof(remote_addr);
 
-    int sock_fd = resolve_and_connect(remote_host, remote_port,
-                                      (sockaddr *)&local_addr, &local_addrlen,
-                                      (sockaddr *)&remote_addr, &remote_addrlen);
+    int sock_fd = resolve_and_connect(
+        (remote_host[0] ? remote_host : nullptr),
+        (remote_port[0] ? remote_port : nullptr),
+        (sockaddr *)&local_addr, &local_addrlen,
+        (sockaddr *)&remote_addr, &remote_addrlen);
     if (sock_fd < 0)
     {
         fprintf(stderr, "Error [%s] [resolve_and_connect]: ret = %d.\n", __func__, sock_fd);
