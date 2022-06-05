@@ -20,8 +20,12 @@
 namespace
 {
     constexpr size_t BUF_SIZE = 1280;
-    constexpr size_t N_STREAMS_MAX_ONE_CONN = 3; // 一个 QUIC Connection 中可以创建的 Stream 数量的上限
-    constexpr size_t N_COALESCE_MAX = 2;         // 将 N_COALESCE_MAX 次 stdin 读取的数据合并发送
+
+    // 设置一条 connection 里只有一条 stream，便于实验观察结果。
+    constexpr size_t N_STREAMS_MAX_ONE_CONN = 1; // 一个 QUIC Connection 中可以创建的 Stream 数量的上限
+
+    // 每一次从 stdin 读取就发送，便于实验观察结果。
+    constexpr size_t N_COALESCE_MAX = 1; // 将 N_COALESCE_MAX 次 stdin 读取的数据合并发送
 } /* namespace */
 
 namespace
@@ -231,6 +235,12 @@ namespace
             return;
         }
 
+        /* 在写完之后，将 cur_stream 里的 buffer 中的数据全部改成特殊字符，便于观察重传情况 */
+        auto cur_stream = connection->get_stream(connection->get_cur_stream_id());
+        const uint8_t val_to_fill = '$';
+        printf("Debug: Fill the whole buf by [%c][ASCII = %d].\n", val_to_fill, (int)val_to_fill);
+        cur_stream->fill_whole_buf_DEBUG(val_to_fill);
+
         /* 设置下一次的 timer expire 事件 */
         ngtcp2_tstamp expiry = connection->get_expiry();
         ngtcp2_tstamp now = timestamp();
@@ -246,7 +256,7 @@ int main()
 
     /* Get remote host & port from stdin */
     char remote_host[50] = {0}, remote_port[50] = {0};
-    printf("Input local host & port:\n");
+    printf("Input remote host & port:\n");
     std::cin.getline(remote_host, sizeof(remote_host));
     std::cin.getline(remote_port, sizeof(remote_port));
     printf("Remote host: [%s].\n", remote_host);

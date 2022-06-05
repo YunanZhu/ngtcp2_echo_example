@@ -24,6 +24,17 @@ void debug_print_sockaddr(const sockaddr *addr, socklen_t addrlen)
     printf("Debug [%s] [getnameinfo] host = %s, port = %s.\n", __func__, host, port);
 }
 
+void debug_print_quic_packet(const uint8_t *pkt, size_t pktlen)
+{
+    printf("Debug [%s]: [", __func__);
+    for (size_t i = 0; i < pktlen; ++i)
+        printf("%d%c", pkt[i], (i + 1 < pktlen ? ',' : '\0'));
+    printf("].\n");
+
+    write(STDOUT_FILENO, pkt, pktlen); // 直接查看 ngtcp2_conn_writev_stream 产生的 QUIC packet。
+    printf("\n");
+}
+
 int set_nonblock(int fd)
 {
     int flags = 0;

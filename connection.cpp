@@ -173,7 +173,8 @@ int Connection::write_one_stream(std::shared_ptr<Stream> stream)
     uint32_t flags = NGTCP2_WRITE_DATAGRAM_FLAG_NONE;
 
     // 使用 NGTCP2_WRITE_STREAM_FLAG_MORE 来指明：可能还会从 stream 中取到更多的待发送的数据，应该尽可能将它们合并到同一个 packet 中。
-    flags |= NGTCP2_WRITE_STREAM_FLAG_MORE;
+    // 关闭 NGTCP2_WRITE_STREAM_FLAG_MORE 位，便于调试。
+    // flags |= NGTCP2_WRITE_STREAM_FLAG_MORE;
 
     while (true)
     {
@@ -245,6 +246,7 @@ int Connection::write_one_stream(std::shared_ptr<Stream> stream)
         /* 调用 send_packet 来往 socket fd 中送入 packet */
         printf("Debug [%s]: to call [send_packet] with socket_fd = %d, n_written = %zd.\n", __func__, this->socket_fd, n_written);
         debug_print_sockaddr((sockaddr *)&(this->remote_addr), this->remote_addrlen);
+        debug_print_quic_packet(buf, n_written); // 由于是明文传输模式，因此我们可以直接观察产生的 QUIC packet 的情况
         int ret = send_packet(this->socket_fd, buf, n_written,
                               (sockaddr *)&(this->remote_addr), this->remote_addrlen);
         if (ret < 0)
@@ -271,6 +273,9 @@ int Connection::write_one_stream(std::shared_ptr<Stream> stream)
 
 void Connection::close()
 {
+    printf("Debug: func [%s] is called. State: is_closed = %s.\n",
+           __func__, (this->is_closed ? "True" : "False"));
+
     if (this->is_closed)
         return;
 

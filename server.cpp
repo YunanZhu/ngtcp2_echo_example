@@ -271,6 +271,8 @@ int EchoServer::handle_incoming()
             }
         }
 
+        // 不让 server 读取数据，模拟 client 传来的包丢失了的情况。
+        /*
         ngtcp2_path path = {0};
         path.local.addr = (sockaddr *)&this->local_addr;
         path.local.addrlen = this->local_addrlen;
@@ -287,6 +289,7 @@ int EchoServer::handle_incoming()
             if (ngtcp2_err_is_fatal(ret))
                 connection->close();
         }
+        */
     }
     return 0;
 }

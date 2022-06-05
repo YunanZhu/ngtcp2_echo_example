@@ -12,6 +12,9 @@
 // 调用 getnameinfo 将 socket addr 转换成 host & port 并打印。
 void debug_print_sockaddr(const sockaddr *addr, socklen_t addrlen);
 
+// 调试打印 QUIC packet。
+void debug_print_quic_packet(const uint8_t *pkt, size_t pktlen);
+
 // 将指针的所有权从 `ptr` 转移给函数调用者。
 template <typename T>
 T *steal_pointer(T *&ptr)

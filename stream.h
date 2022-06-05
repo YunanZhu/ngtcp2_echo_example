@@ -3,16 +3,19 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+
+#define DEFAULT_STREAM_BUF_CAPACITY 1024
 
 class Stream
 {
 public:
-    static constexpr size_t STREAM_BUF_CAPACITY = 1024;
+    const size_t STREAM_BUF_CAPACITY;
 
 private:
     int64_t id; // Stream ID
 
-    uint8_t buf[STREAM_BUF_CAPACITY]; // 循环向量
+    uint8_t *buf; // 循环向量
 
     size_t buf_head; // buf 中数据的首地址，是 buf 的某个下标，范围 [0, STREAM_BUF_CAPACITY)。
     size_t buf_size; // buf 中数据的长度，范围 [0, STREAM_BUF_CAPACITY]。
@@ -25,7 +28,8 @@ private:
     inline size_t get_buf_tail() const { return (buf_head + buf_size) % STREAM_BUF_CAPACITY; }
 
 public:
-    Stream(int64_t stream_id);
+    Stream(int64_t stream_id, size_t capacity = DEFAULT_STREAM_BUF_CAPACITY);
+    ~Stream();
 
     inline int64_t get_id() const { return id; }
 
@@ -52,6 +56,13 @@ public:
 
     // 更新已确认的数据的位置。
     int mark_acked(size_t new_acked_offset);
+
+    // 将 buf 中所有的字节全部都置为 val，仅仅是为了调试用。
+    void fill_whole_buf_DEBUG(uint8_t val)
+    {
+        for (size_t i = 0; i < STREAM_BUF_CAPACITY; ++i)
+            this->buf[i] = val;
+    }
 };
 
 #endif /* __STREAM_H__ */

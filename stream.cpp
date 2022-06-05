@@ -2,9 +2,16 @@
 
 #include "stream.h"
 
-Stream::Stream(int64_t stream_id)
-    : id(stream_id), buf{0}, buf_head(0), buf_size(0), nsent_offset(0), acked_offset(0)
+Stream::Stream(int64_t stream_id, size_t capacity)
+    : STREAM_BUF_CAPACITY(capacity), id(stream_id), buf(new uint8_t[capacity]),
+      buf_head(0), buf_size(0), nsent_offset(0), acked_offset(0)
 {
+}
+
+Stream::~Stream()
+{
+    if (buf)
+        delete[] buf;
 }
 
 size_t Stream::push_data(const uint8_t *data, size_t data_len)
